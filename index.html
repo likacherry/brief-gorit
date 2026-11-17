@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Бриф горит — игра для копирайтеров</title>
+<style>
+:root{--ink:#241e41;--paper:#fffdf6;--ground:#ede8ff;--accent:#ffda63;--muted:#615776;--rule:#aa9bc8}*{box-sizing:border-box}body{margin:0;background:var(--ground);color:var(--ink);font:17px/1.5 system-ui,sans-serif}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer;border:1px solid var(--ink);background:var(--paper);padding:.65rem 1rem;border-radius:6px;font-weight:700}button:hover{background:#f4eaff}button.primary{background:var(--accent);box-shadow:3px 3px 0 var(--ink)}button.primary:hover{background:#ffe58c}button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid #6745bb;outline-offset:3px}header{border-bottom:1px solid var(--rule)}header div,main,footer{width:min(1080px,calc(100% - 36px));margin:auto}header div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;font-weight:800}header small{color:var(--muted);text-align:right}main{padding:38px 0 30px;min-height:76vh}footer{padding:16px 0;border-top:1px solid var(--rule);color:var(--muted);font-size:.85rem}h1,h2,h3,p{margin:0 0 .65em}h1{font:800 clamp(2.3rem,8vw,6rem)/.94 system-ui,sans-serif;letter-spacing:-.075em}h2{font-size:clamp(1.55rem,4vw,2.35rem);line-height:1.08;letter-spacing:-.04em}h3{line-height:1.2}p:last-child{margin-bottom:0}.hero{background:var(--ink);color:var(--paper);padding:clamp(22px,6vw,58px);margin-bottom:30px;border-radius:10px;position:relative;overflow:hidden}.hero h1 span{color:var(--accent)}.hero p{max-width:44ch}.eyebrow,.label{font:700 .77rem/1.4 ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase}.hero .eyebrow{color:var(--accent)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.ticket,.panel{background:var(--paper);border:1px solid var(--ink);border-radius:8px;padding:20px}.ticket{border-top:6px solid var(--ink);display:flex;flex-direction:column;align-items:flex-start}.ticket:nth-child(2){border-top-color:#b04a75}.ticket:nth-child(3){border-top-color:#426d67}.ticket p{flex:1}.ticket button{margin-top:6px;width:100%;text-align:left}.desk{display:grid;grid-template-columns:minmax(215px,1fr) minmax(0,2fr);gap:18px;align-items:start}.brief{background:#fff2bd;display:grid;gap:12px}.brief dl{margin:0}.brief dt{font-weight:800;margin-top:8px}.brief dd{margin:0}.progress{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0 0 20px}.progress li{border:1px solid var(--rule);border-radius:20px;padding:.2rem .65rem;font-size:.83rem}.progress [aria-current]{background:var(--ink);color:white}.stack{display:grid;gap:10px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}.choices button{text-align:left}.notice{background:#eee4ff;border-left:4px solid #7655b9;padding:12px;margin:12px 0}.notice.good{background:#e2f2e5;border-color:#35815b}.danger{color:#8a1736}.muted{color:var(--muted);font-size:.89rem}label{display:block;font-weight:750}textarea,input{width:100%;border:1px solid var(--rule);border-radius:5px;padding:10px;background:white}textarea{min-height:144px;resize:none}#reason{min-height:82px}.meter{text-align:right;margin:0}.score{font-size:3rem;font-weight:900;letter-spacing:-.07em}.score small{font-size:1rem;letter-spacing:0}details{margin-top:14px}summary{cursor:pointer;font-weight:750}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:#f4effa;padding:12px;border-radius:5px}dialog{border:1px solid var(--ink);border-radius:8px;color:var(--ink);background:var(--paper);max-width:min(410px,90vw);padding:22px}dialog::backdrop{background:#241e4180}@media(max-width:690px){.grid,.desk{grid-template-columns:1fr}main{padding-top:25px}.ticket,.panel{padding:16px}}
+</style></head>
+<body><header><div><span>БРИФ ГОРИТ ✷</span><small>Реклама · 2 курс</small></div></header><main id="app"></main><footer id="status">Учебная игра · Прогресс хранится в этом браузере</footer>
+<dialog id="restart"><h2>Выбрать новый заказ?</h2><p>Скачай работу перед сменой заказа, если хочешь её сохранить.</p><form method="dialog" class="actions"><button value="cancel" autofocus>Остаться</button><button value="clear" class="primary">Выбрать заказ</button></form></dialog>
+<script>
+const briefs = [
+ {name:'Студия «Дубль»',format:'Пост для соцсетей',offer:'Подарочный сертификат на запись одной песни.',people:'Люди, которые ищут подарок другу, поющему для себя.',goal:'Побудить написать в студию и спросить о свободных датах.',limit:350,rule:'Указывай только подтверждённые условия.',change:'Сертификат действует 30 дней с момента покупки. Укажи это в посте.',
+ asks:[['Можно прийти без опыта?','Да. Звукорежиссёр поможет освоиться у микрофона.'],['Что входит в сертификат?','В сертификат входят один час записи и обработка вокала.'],['Сколько стоит сертификат?','Сертификат стоит 3 500 рублей.']],
+ quiz:[
+ ['Русский язык','Как исправить фразу «Приобретая сертификат, у вас появится возможность записать песню»?',['Приобретая сертификат, песня будет записана вами.','Купив сертификат, вы сможете записать песню.','Купив сертификат, у вас будет запись песни.'],1,'Покупает сертификат и получает возможность записать песню один и тот же человек. В исправленной фразе он назван подлежащим «вы».'],
+ ['Культура речи','Какая фраза точнее передаёт предложение?',['Воплотите заветную мечту.','Получите незабываемые эмоции.','Запишите одну песню в студии.'],2,'Читатель сразу понимает, что входит в предложение.'],
+ ['Реклама','Какой призыв ведёт к цели поста?',['Напишите нам, чтобы узнать свободные даты.','Следите за новостями студии.','Поделитесь постом с друзьями.'],0,'Действие в призыве совпадает с целью клиента.']]},
+ {name:'Кофейня «Пауза»',format:'Пост для студенческого канала',offer:'Капучино и сырники в утреннем комбо за 290 ₽.',people:'Студенты соседнего колледжа, которые заходят перед первой парой.',goal:'Побудить зайти в кофейню утром и заказать комбо.',limit:300,rule:'Не обещай время приготовления, пока клиент его не подтвердил.',change:'Комбо действует по будням до 10:30. Укажи оба ограничения.',
+ asks:[['Можно заказать навынос?','Да, комбо можно взять с собой.'],['Где находится кофейня?','Она напротив главного входа в колледж.'],['Во сколько открываетесь?','По будням открываемся в 8:00.']],
+ quiz:[
+ ['Русский язык','В каком варианте правильно согласовано сказуемое?',['Кофе и сырники входит в комбо.','Кофе и сырники входят в комбо.','Кофе и сырники входило в комбо.'],1,'При двух однородных подлежащих перед сказуемым здесь нужна форма «входят».'],
+ ['Культура речи','Как написать о цене проще всего?',['Комбо стоит 290 ₽.','Стоимость комбо составляет сумму в размере 290 ₽.','Ценовое предложение по комбо находится на отметке 290 ₽.'],0,'Глагол «стоит» передаёт ту же информацию без лишних слов.'],
+ ['Реклама','Какой первый акцент подходит аудитории брифа?',['История появления капучино.','Наш обновлённый интерьер.','Горячий завтрак перед первой парой.'],2,'Начало связывает предложение с ситуацией читателя.']]},
+ {name:'Баскетбольный клуб «Тайм-аут»',format:'Анонс для соцсетей',offer:'Бесплатная пробная тренировка по баскетболу для новичков.',people:'Студенты, которые давно хотели попробовать баскетбол и переживают, что будут отставать.',goal:'Побудить записаться на пробную тренировку через личные сообщения.',limit:320,rule:'Обещай только то, что известно из брифа или ответа клиента.',change:'Пробная тренировка рассчитана на 12 человек. Укажи, что нужна предварительная запись.',
+ asks:[['Что взять с собой?','Достаточно спортивной формы и сменных кроссовок. Мячи выдаём.'],['Кто ведёт тренировку?','Тренер показывает базовые движения и помогает освоить их.'],['Можно прийти одному?','Да. На месте тренер распределит участников по парам.']],
+ quiz:[
+ ['Русский язык','Какой вариант пунктуации верный?',['Если ты впервые на площадке приходи на пробную тренировку.','Если, ты впервые на площадке приходи на пробную тренировку.','Если ты впервые на площадке, приходи на пробную тренировку.'],2,'Запятая отделяет придаточную часть с «если» от главной.'],
+ ['Культура речи','Как обратиться к новичку уважительно?',['С нуля? Приходи попробовать баскетбол.','Даже полные нули у нас справятся.','Докажи, что ты не слабак.'],0,'Обращение признаёт отсутствие опыта без обесценивания или давления.'],
+ ['Реклама','Какой призыв даёт конкретный следующий шаг?',['Стань частью команды.','Напиши нам в личные сообщения, чтобы записаться.','Больше двигайся.'],1,'Названы действие, канал и цель сообщения.']]}
+];
+const key = 'brief-gorit-v1';
+const app = document.querySelector('#app');
+const dialog = document.querySelector('#restart');
+const labels = ['Вопрос клиенту','Черновик','Мини-тест','Редактура','Результат'];
+const rubric = [['Решение задачи клиента',25],['Попадание в аудиторию',20],['Язык и стиль',20],['Редактура и объяснение',15]];
+let state = null;
+try { state = JSON.parse(localStorage.getItem(key)); } catch {}
+function save() {
+ try { localStorage.setItem(key,JSON.stringify(state)); }
+ catch { document.querySelector('#status').textContent='Автосохранение недоступно. Скачай работу после прохождения.'; }
+}
+function esc(value) {
+ const span = document.createElement('span');
+ span.textContent = value;
+ return span.innerHTML;
+}
+function go(stage) {
+ state.stage=stage;
+ save();
+ render(true);
+}
+function action(label, id, primary=true) {
+ return '<button type="button" id="'+id+'"'+(primary?' class="primary"':'')+'>'+label+'</button>';
+}
+function on(id, fn) { document.getElementById(id)?.addEventListener('click',fn); }
+function heading(text) { return '<h2 tabindex="-1" id="screen">'+text+'</h2>'; }
+function field(id, title, value) {
+ return '<label for="'+id+'">'+title+'</label><textarea id="'+id+'">'+esc(value)+'</textarea>';
+}
+function count(text) { return Array.from(text.trim()).length; }
+const obsceneWord = /^(?:[а-я]*(?:п[ие]зд|муда[кч]|долбо[её]б|зло[её]б|говн|гов[её]н)|(?:(?:на|по|за|о|от|ни|до|вы|при|пере|под|с|раз)?х[уy][йиеёяю]|хуйн|хули$|бл[яе](?:д|т|$)|(?:вы|за|на|от|по|под|пере|при|про|раз|с|у|въ|до|[сз]ъ)?[её]б(?:$|а[лнтшь]|у[чтщие]|ё|е[тмшьл]|н|л|ст|ищ)|манд(?:а$|у$|ой$|[ау]ш|[ао]вош)|сук(?:а|и|у|ой|ам|ами|$)|суч(?:ка|ки|ку|кой|ье)|залуп(?:а|у|ой|ы|$)|пид(?:ор|ар|ер|р)|хер(?:$|ня|ов|а$|ом$)|жоп|дерьм|гандон|мразь|шлюх|ублюд|у[её]б|чмо$|бляд))/u;
+const obsceneLatin = /^(?:[a-z]*(?:p[ie]zd|d[oa]lbo(?:y?e)b|mudak)|(?:(?:na|po|za|o|ot|vy|ni)?(?:kh|h|x)u(?:y|j|i|e|ya)|bl(?:ya|ia|ja)(?:d|t|$)|(?:(?:za|ot|po|vy|na|pro)?(?:y?eb))(?:$|at|an|al|ut|lan|uch)|suk[aiu]$|pid[ao]r|zalupa|govno|zhopa|fuck|motherfuck|bullshit|shit|bitch|asshole))/u;
+const lookalikes = {a:'а',b:'б',c:'с',e:'е',h:'х',k:'к',m:'м',o:'о',p:'р',x:'х',y:'у',u:'у',z:'з',i:'и',d:'д',l:'л','0':'о','3':'з','4':'ч','@':'а'};
+function hasProfanity(text) {
+ const normalized=text.normalize('NFKC').toLowerCase().replace(/\p{Cf}/gu,'');
+ const tokens=[...normalized.matchAll(/[\p{L}\p{N}@]+/gu)];
+ const blocked=token=>{
+  const mapped=Array.from(token,char=>lookalikes[char]??char).join('');
+  return obsceneWord.test(mapped) || obsceneLatin.test(token);
+ };
+ if(tokens.some(([word])=>blocked(word))) return true;
+ // Look for letters split by short runs of punctuation or spaces.
+ return tokens.some(([first],start)=>{
+  let joined=first;
+  let singleLetters=first.length===1?1:0;
+  for(let index=start+1;index<tokens.length;index++){
+   const previous=tokens[index-1];
+   const next=tokens[index];
+   const separator=normalized.slice(previous.index+previous[0].length,next.index);
+   if(!/^[^\p{L}\p{N}@\n]{1,3}$/u.test(separator)) break;
+   joined+=next[0];
+   if(joined.length>12) break;
+   if(next[0].length===1) singleLetters+=1;
+   if(joined.length>=3 && (singleLetters>=2 || (singleLetters>=1 && /[^\s]/u.test(separator))) && blocked(joined)) return true;
+  }
+  return false;
+ });
+}
+const copyChecks = [
+ {offer:[/сертификат|подарочн\p{L}* карт/iu,/песн|трек|вокал/iu,/запис|запиш|звукозапис/iu],
+  action:[/напиш|пиш|сообщен|сообщён|личк|личн\p{L}* сообщ|спрос|свяж|обрат/iu,/дат|дн[июя]|день|врем|окн|слот/iu],
+  offerHint:'Укажи, что сертификат даёт возможность записать песню.',
+  actionHint:'Предложи читателю написать в студию и спросить о свободных датах.'},
+ {offer:[/капучино/iu,/сырник/iu,/290/u],
+  action:[/заход|заглян|приход|забег|заскоч|зай(?:ди|дите|ти)|возьм|закаж|заказ|бер[иёе]|бери/iu,/утр|завтрак|перв\p{L}* пар|перед занят|до занят/iu],
+  offerHint:'Назови обе позиции комбо — капучино и сырники — и цену 290 ₽.',
+  actionHint:'Пригласи зайти за комбо утром или предложи взять его перед занятиями.'},
+ {offer:[/баскетбол|баскет/iu,/трениров|заняти/iu,/бесплат|без оплат|за 0/u],
+  action:[/запиш|запис|заброниру|заявк/iu,/напиш|пиш|личк|личн\p{L}* сообщ|директ|сообщени/iu],
+  offerHint:'Скажи, что клуб предлагает бесплатную тренировку по баскетболу.',
+  actionHint:'Предложи записаться через личные сообщения.'}
+];
+const cliches = [
+ /незабываем\p{L}* (?:эмоци|впечатлен)\p{L}*/iu,
+ /(?:воплоти|воплощ)\p{L}* (?:сво\p{L}* )?мечт\p{L}*(?: в реальность)?/iu,
+ /уникальн\p{L}* (?:возможност|предложени)\p{L}*/iu,
+ /погруз\p{L}* в мир/iu, /откро(?:й|йте|йте для себя) мир/iu,
+ /вывед\p{L}* на новый уровень/iu, /идеальн\p{L}* решени\p{L}* для всех/iu,
+ /в современном мире/iu, /успе(?:й|йте) воспользова\p{L}*/iu,
+ /вс[её][\s,]+что вам нужно/iu, /нов\p{L}* горизонт\p{L}*/iu,
+ /равнодушн\p{L}* никого|никого равнодушн\p{L}*/iu,
+ /мечт\p{L}* ста(?:нет|нут) реальностью/iu, /качество по доступной цене/iu
+];
+function draftError(text, briefIndex) {
+ if(hasProfanity(text)) return 'Убери мат и грубые выражения из черновика.';
+ const normalized=text.normalize('NFKC').replace(/\s+/gu,' ').trim();
+ const words=normalized.toLowerCase().match(/\p{L}+/gu)??[];
+ const distinct=new Set(words.filter(word=>word.length>=2));
+ const fragments=text.split(/(?:[.!?…]+(?=\s|$)|[\r\n]+)/u).map(part=>part.match(/\p{L}+/gu)??[]).filter(part=>part.length);
+ if(count(normalized)<80 || words.length<12 || distinct.size<8 ||
+    (fragments.length>=3 && fragments.every(part=>part.length<=4))) {
+  return 'Напиши цельный пост. Нужно не менее 80 знаков и 12 слов, из них минимум 8 разных слов от двух букв. Свяжи предложение с ситуацией читателя вместо списка коротких фраз.';
+ }
+ const phrase=cliches.map(pattern=>normalized.match(pattern)?.[0]).find(Boolean);
+ if(phrase) return 'Замени «'+phrase+'» конкретной деталью из брифа или ответа клиента.';
+ const check=copyChecks[briefIndex];
+ if(!check.offer.every(pattern=>pattern.test(normalized))) return check.offerHint;
+ if(!check.action.every(pattern=>pattern.test(normalized))) return check.actionHint;
+ return '';
+}
+function editor(id, title, value, limit) {
+ return field(id,title,value)+'<p class="meter muted" id="meter">'+count(value)+' / '+limit+' знаков</p>';
+}
+function briefPanel(b) {
+ return '<aside class="panel brief" aria-label="Бриф"><div><div class="label">'+b.format+'</div><h3>'+b.name+'</h3></div><dl><dt>Предложение</dt><dd>'+b.offer+'</dd><dt>Аудитория</dt><dd>'+b.people+'</dd><dt>Цель</dt><dd>'+b.goal+'</dd><dt>Условия</dt><dd>До '+b.limit+' знаков. '+b.rule+'</dd></dl>'+
+ (state.ask===null?'':'<div><strong>Ответ клиента</strong><p>'+b.asks[state.ask][1]+'</p></div>')+
+ (state.stage<3?'':'<div><strong>Уточнение клиента</strong><p>'+b.change+'</p></div>')+'</aside>';
+}
+function quizScore(b) {
+ const right=state.answers.filter((answer,i)=>answer===b.quiz[i][3]).length;
+ return [0,7,13,20][right];
+}
+function stagePanel(b) {
+ switch(state.stage) {
+ case 0: return heading('Что спросишь у клиента?')+'<p>Выбери один вопрос. Ответ останется в брифе.</p><div class="stack choices">'+b.asks.map(([q],i)=>action(q,'ask'+i,false)).join('')+'</div>';
+ case 1: return heading('Напиши черновик')+'<p>Напиши цельный пост: начни с ситуации читателя, объясни предложение и подскажи, что делать дальше. Минимум 80 знаков и 12 слов.</p>'+editor('draft','Первый вариант',state.draft,b.limit)+'<p id="error" role="alert" class="danger"></p><div class="actions">'+action('Зафиксировать черновик','draft-next')+'</div>';
+ case 2: {
+  const i=state.q;
+  const [topic,q,choices,correct,note]=b.quiz[i];
+  const selected=state.answers[i];
+  const answered=selected!==undefined;
+  return '<p class="label">'+topic+' · '+(i+1)+' из '+b.quiz.length+'</p>'+heading(q)+
+   (answered?'<p>Твой ответ: '+choices[selected]+'</p><p class="notice '+(selected===correct?'good':'')+'"><strong>'+(selected===correct?'Верно.':'Правильный ответ — '+choices[correct])+'</strong> '+note+'</p>'+action(i===2?'Перейти к редактуре':'Следующий вопрос','quiz-next'):'<div class="stack choices">'+choices.map((choice,j)=>action(choice,'choice'+j,false)).join('')+'</div>');
+ }
+ case 3: return heading('Отредактируй текст')+'<p class="notice"><strong>Клиент уточнил условия.</strong> '+b.change+'</p>'+editor('final','Итоговый вариант',state.final,b.limit)+field('reason','Что ты изменил и почему?',state.reason)+'<details><summary>Показать черновик</summary><pre>'+esc(state.draft)+'</pre></details><p id="error" role="alert" class="danger"></p><div class="actions">'+action('Завершить раунд','finish')+'</div>';
+ case 4: return heading('Раунд завершён')+'<div class="score">'+quizScore(b)+' <small>из 20 за мини-тест</small></div><p>До 80 баллов за текст выставляет преподаватель. Скачай работу и передай её на проверку.</p><details><summary>Критерии оценки</summary><ul>'+rubric.map(([label,points])=>'<li>'+label+' — до '+points+'</li>').join('')+'</ul></details><details><summary>Черновик и итоговый текст</summary><h3>Черновик</h3><pre>'+esc(state.draft)+'</pre><h3>Итог</h3><pre>'+esc(state.final)+'</pre><h3>Объяснение правки</h3><pre>'+esc(state.reason)+'</pre></details><div class="actions">'+action('Скачать работу','download')+action('Выбрать новый заказ','new',false)+'</div>';
+ }
+}
+function bindText(id,b) {
+ const field=document.getElementById(id);
+ if(!field) return;
+ field.setAttribute('aria-describedby',id==='reason'?'error':'meter error');
+ field.addEventListener('input',()=>{
+  state[id]=field.value;
+  if(field.hasAttribute('aria-invalid')) {
+   field.removeAttribute('aria-invalid');
+   document.getElementById('error').textContent='';
+  }
+  save();
+  if(id==='reason') return;
+  const meter=document.getElementById('meter');
+  const length=count(field.value);
+  meter.textContent=length+' / '+b.limit+' знаков';
+  meter.classList.toggle('danger',length>b.limit);
+ });
+}
+function fail(id,message) {
+ document.getElementById('error').textContent=message;
+ const field=document.getElementById(id);
+ field.setAttribute('aria-invalid','true');
+ field.focus();
+}
+function download(b) {
+ const entries=['БРИФ ГОРИТ — '+b.name,'Студент и группа: ____________________',b.format+' · до '+b.limit+' знаков','Предложение: '+b.offer,'Аудитория: '+b.people,'Цель: '+b.goal,'Вопрос: '+b.asks[state.ask][0],'Ответ: '+b.asks[state.ask][1],'Уточнение: '+b.change,'ЧЕРНОВИК\n'+state.draft,'ИТОГ ('+count(state.final)+' знаков)\n'+state.final,'ОБЪЯСНЕНИЕ ПРАВКИ\n'+state.reason,'ТЕСТ: '+quizScore(b)+' из 20\n'+b.quiz.map(([topic,q,choices,correct],i)=>topic+' — '+choices[state.answers[i]]+(state.answers[i]===correct?' ✓':' (верный ответ: '+choices[correct]+')')).join('\n'),'ОЦЕНКА ПРЕПОДАВАТЕЛЯ\n'+rubric.map(([label,points])=>label+' — ___ / '+points).join('\n')+'\nВсего с учётом теста: ___ / 100'];
+ const url=URL.createObjectURL(new Blob(['\ufeff'+entries.join('\n\n')],{type:'text/plain;charset=utf-8'}));
+ const link=document.createElement('a');
+ link.href=url;
+ link.download='Бриф горит — '+b.name+'.txt';
+ link.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function render(focus=false) {
+ if(!state) {
+  app.innerHTML='<section class="hero"><p class="eyebrow">Практика рекламного текста</p><h1 tabindex="-1" id="screen">Бриф <span>горит.</span></h1><p>Возьми заказ, напиши текст и доработай его после ответа клиента. За раунд можно набрать до 100 баллов.</p></section><h2>Выбери заказ</h2><section class="grid" aria-label="Заказы">'+briefs.map((b,i)=>'<article class="ticket"><p class="label">'+b.format+'</p><h3>'+b.name+'</h3><p>'+b.offer+'</p>'+action('Взять заказ', 'brief'+i,false)+'</article>').join('')+'</section>';
+  briefs.forEach((b,i)=>{
+   document.getElementById('brief'+i).setAttribute('aria-label','Взять заказ: '+b.name);
+   on('brief'+i,()=>{state={brief:i,stage:0,ask:null,draft:'',final:'',reason:'',q:0,answers:[]};go(0);});
+  });
+ } else {
+  const b=briefs[state.brief];
+  app.innerHTML='<ol class="progress" aria-label="Этапы раунда">'+labels.map((label,i)=>'<li'+(i===state.stage?' aria-current="step"':'')+'>'+(i+1)+'. '+label+'</li>').join('')+'</ol><div class="desk">'+briefPanel(b)+'<section class="panel">'+stagePanel(b)+'</section></div>';
+  b.asks.forEach((option,i)=>on('ask'+i,()=>{state.ask=i;go(1);}));
+  ['draft','final','reason'].forEach(id=>bindText(id,b));
+  on('draft-next',()=>{
+   const error=draftError(state.draft,state.brief);
+   if(error) return fail('draft',error);
+   state.draft=state.draft.trim();
+   state.final=state.draft;
+   go(2);
+  });
+  b.quiz[state.q][2].forEach((choice,i)=>on('choice'+i,()=>{state.answers[state.q]=i;go(2);}));
+  on('quiz-next',()=>{if(state.q===2) go(3); else {state.q+=1;go(2);}});
+  on('finish',()=>{
+   if(!state.final.trim()) return fail('final','Добавь итоговый текст.');
+   if(count(state.final)>b.limit) return fail('final','Сократи итоговый текст до '+b.limit+' знаков.');
+   if(!state.reason.trim()) return fail('reason','Объясни, какую правку ты сделал и почему.');
+   go(4);
+  });
+  on('download',()=>download(b));
+  on('new',()=>{dialog.returnValue='';dialog.showModal();});
+ }
+ if(focus) { window.scrollTo(0,0); document.getElementById('screen').focus({preventScroll:true}); }
+}
+dialog.addEventListener('close',()=>{if(dialog.returnValue==='clear'){state=null;save();render(true);}});
+render();
+</script></body></html>
