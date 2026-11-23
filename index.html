@@ -151,7 +151,7 @@ function stagePanel(b) {
    (answered?'<p>Твой ответ: '+choices[selected]+'</p><p class="notice '+(selected===correct?'good':'')+'"><strong>'+(selected===correct?'Верно.':'Правильный ответ — '+choices[correct])+'</strong> '+note+'</p>'+action(i===2?'Перейти к редактуре':'Следующий вопрос','quiz-next'):'<div class="stack choices">'+choices.map((choice,j)=>action(choice,'choice'+j,false)).join('')+'</div>');
  }
  case 3: return heading('Отредактируй текст')+'<p class="notice"><strong>Клиент уточнил условия.</strong> '+b.change+'</p>'+editor('final','Итоговый вариант',state.final,b.limit)+field('reason','Что ты изменил и почему?',state.reason)+'<details><summary>Показать черновик</summary><pre>'+esc(state.draft)+'</pre></details><p id="error" role="alert" class="danger"></p><div class="actions">'+action('Завершить раунд','finish')+'</div>';
- case 4: return heading('Раунд завершён')+'<div class="score">'+quizScore(b)+' <small>из 20 за мини-тест</small></div><p>До 80 баллов за текст выставляет преподаватель. Скачай работу и передай её на проверку.</p><details><summary>Критерии оценки</summary><ul>'+rubric.map(([label,points])=>'<li>'+label+' — до '+points+'</li>').join('')+'</ul></details><details><summary>Черновик и итоговый текст</summary><h3>Черновик</h3><pre>'+esc(state.draft)+'</pre><h3>Итог</h3><pre>'+esc(state.final)+'</pre><h3>Объяснение правки</h3><pre>'+esc(state.reason)+'</pre></details><div class="actions">'+action('Скачать работу','download')+action('Выбрать новый заказ','new',false)+'</div>';
+ case 4: return heading('Раунд завершён')+'<div class="score">'+quizScore(b)+' <small>из 20 за мини-тест</small></div><p>До 80 баллов за текст выставляет преподаватель. Укажи имя и группу, затем поделись файлом работы с преподавателем.</p><details><summary>Критерии оценки</summary><ul>'+rubric.map(([label,points])=>'<li>'+label+' — до '+points+'</li>').join('')+'</ul></details><details><summary>Черновик и итоговый текст</summary><h3>Черновик</h3><pre>'+esc(state.draft)+'</pre><h3>Итог</h3><pre>'+esc(state.final)+'</pre><h3>Объяснение правки</h3><pre>'+esc(state.reason)+'</pre></details><div class="actions">'+action('Поделиться файлом','share')+action('Скачать работу','download',false)+action('Выбрать новый заказ','new',false)+'</div><p><label for="student-name">Фамилия и имя</label><input id="student-name" autocomplete="name" maxlength="100" value="'+esc(state.studentName||'')+'"></p><p><label for="student-group">Группа</label><input id="student-group" maxlength="60" value="'+esc(state.studentGroup||'')+'"></p><p id="share-status" role="status" aria-live="polite">Нажми «Поделиться файлом», выбери Telegram и чат преподавателя. Если меню недоступно, скачай файл и прикрепи его в чате.</p>';
  }
 }
 function bindText(id,b) {
@@ -178,15 +178,40 @@ function fail(id,message) {
  field.setAttribute('aria-invalid','true');
  field.focus();
 }
-function download(b) {
- const entries=['БРИФ ГОРИТ — '+b.name,'Студент и группа: ____________________',b.format+' · до '+b.limit+' знаков','Предложение: '+b.offer,'Аудитория: '+b.people,'Цель: '+b.goal,'Вопрос: '+b.asks[state.ask][0],'Ответ: '+b.asks[state.ask][1],'Уточнение: '+b.change,'ЧЕРНОВИК\n'+state.draft,'ИТОГ ('+count(state.final)+' знаков)\n'+state.final,'ОБЪЯСНЕНИЕ ПРАВКИ\n'+state.reason,'ТЕСТ: '+quizScore(b)+' из 20\n'+b.quiz.map(([topic,q,choices,correct],i)=>topic+' — '+choices[state.answers[i]]+(state.answers[i]===correct?' ✓':' (верный ответ: '+choices[correct]+')')).join('\n'),'ОЦЕНКА ПРЕПОДАВАТЕЛЯ\n'+rubric.map(([label,points])=>label+' — ___ / '+points).join('\n')+'\nВсего с учётом теста: ___ / 100'];
- const url=URL.createObjectURL(new Blob(['\ufeff'+entries.join('\n\n')],{type:'text/plain;charset=utf-8'}));
- const link=document.createElement('a');
- link.href=url;
- link.download='Бриф горит — '+b.name+'.txt';
- link.click();
- setTimeout(()=>URL.revokeObjectURL(url),1000);
+function workFile(b) {
+ const entries=['БРИФ ГОРИТ — '+b.name,'Студент: '+(state.studentName||'Не указано')+'\nГруппа: '+(state.studentGroup||'Не указана'),b.format+' · до '+b.limit+' знаков','Предложение: '+b.offer,'Аудитория: '+b.people,'Цель: '+b.goal,'Вопрос: '+b.asks[state.ask][0],'Ответ: '+b.asks[state.ask][1],'Уточнение: '+b.change,'ЧЕРНОВИК\n'+state.draft,'ИТОГ ('+count(state.final)+' знаков)\n'+state.final,'ОБЪЯСНЕНИЕ ПРАВКИ\n'+state.reason,'ТЕСТ: '+quizScore(b)+' из 20\n'+b.quiz.map(([topic,q,choices,correct],i)=>topic+' — '+choices[state.answers[i]]+(state.answers[i]===correct?' ✓':' (верный ответ: '+choices[correct]+')')).join('\n'),'ОЦЕНКА ПРЕПОДАВАТЕЛЯ\n'+rubric.map(([label,points])=>label+' — ___ / '+points).join('\n')+'\nВсего с учётом теста: ___ / 100'];
+ const name=('Бриф горит — '+(state.studentName||'Работа')+' — '+b.name).replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').slice(0,160)+'.txt';
+ return new File(['\ufeff'+entries.join('\n\n')],name,{type:'text/plain'});
 }
+function download(b) {
+ const file=workFile(b);
+ const url=URL.createObjectURL(file);
+ const link=document.createElement('a');
+ link.href=url;link.download=file.name;document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+async function shareWork(b) {
+ const status=document.getElementById('share-status');
+ if(!state.studentName?.trim() || !state.studentGroup?.trim()) {
+  status.textContent='Укажи фамилию, имя и группу перед отправкой.';
+  document.getElementById(!state.studentName?.trim()?'student-name':'student-group').focus();
+  return;
+ }
+ const button=document.getElementById('share');
+ const file=workFile(b);
+ try {
+  if(!navigator.share || !navigator.canShare || !navigator.canShare({files:[file]})) {
+   status.textContent='Браузер не поддерживает отправку файла. Нажми «Скачать работу», затем в Telegram открой чат преподавателя и прикрепи файл через скрепку.';
+   return;
+  }
+  button.disabled=true;
+  await navigator.share({files:[file]});
+  status.textContent='Меню закрыто. Проверь в Telegram, что файл отправлен преподавателю.';
+ } catch(error) {
+  status.textContent=error.name==='AbortError'?'Отправка отменена. Можно попробовать ещё раз или скачать файл.':'Не удалось открыть отправку. Скачай работу и прикрепи файл в Telegram через скрепку.';
+ } finally { button.disabled=false; }
+}
+
 function render(focus=false) {
  if(!state) {
   app.innerHTML='<section class="hero"><p class="eyebrow">Практика рекламного текста</p><h1 tabindex="-1" id="screen">Бриф <span>горит.</span></h1><p>Возьми заказ, напиши текст и доработай его после ответа клиента. За раунд можно набрать до 100 баллов.</p></section><h2>Выбери заказ</h2><section class="grid" aria-label="Заказы">'+briefs.map((b,i)=>'<article class="ticket"><p class="label">'+b.format+'</p><h3>'+b.name+'</h3><p>'+b.offer+'</p>'+action('Взять заказ', 'brief'+i,false)+'</article>').join('')+'</section>';
@@ -214,6 +239,11 @@ function render(focus=false) {
    if(!state.reason.trim()) return fail('reason','Объясни, какую правку ты сделал и почему.');
    go(4);
   });
+  for(const [id,key] of [['student-name','studentName'],['student-group','studentGroup']]) {
+   const input=document.getElementById(id);
+   input?.addEventListener('input',()=>{state[key]=input.value;save();});
+  }
+  on('share',()=>shareWork(b));
   on('download',()=>download(b));
   on('new',()=>{dialog.returnValue='';dialog.showModal();});
  }
